@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/menu_toggle_modes"
+        android:title="@string/twenty_one_tweaks"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/menu_latest_videos"
+        android:title="@string/latest_videos"
+        app:showAsAction="never"/>
+
+    <item
+        android:id="@+id/menu_cookbook"
+        android:title="@string/title_cookbook"
+        app:showAsAction="never"/>
+
+    <item
+        android:id="@+id/menu_daily_reminder_settings"
+        android:title="@string/daily_reminder_settings"
+        app:showAsAction="never"/>
+    <!--<item
+        android:id="@+id/menu_backup"
+        android:title="@string/backup"
+        app:showAsAction="never"/>-->
+    <item
+        android:id="@+id/menu_about"
+        android:title="@string/about"
+        app:showAsAction="never"/>
+    <item
+        android:id="@+id/menu_debug"
+        android:title="@string/debug"
+        app:showAsAction="never" />
+</menu>

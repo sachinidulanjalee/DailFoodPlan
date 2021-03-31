@@ -1,0 +1,138 @@
+package com.example.dailyfoodplan.activity;
+
+import android.os.Bundle;
+import android.text.TextUtils;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.ImageView;
+
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.example.dailyfoodplan.Common;
+import com.example.dailyfoodplan.R;
+import com.example.dailyfoodplan.adapter.FoodServingsAdapter;
+import com.example.dailyfoodplan.adapter.FoodTypeAdapter;
+import com.example.dailyfoodplan.controller.Prefs;
+import com.example.dailyfoodplan.model.Food;
+import com.example.dailyfoodplan.model.FoodInfo;
+import com.example.dailyfoodplan.model.enums.Units;
+
+import java.util.List;
+
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
+import timber.log.Timber;
+
+public class FoodInfoActivity extends InfoActivity {
+    @BindView(R.id.food_info_image)
+    protected ImageView ivFood;
+    @BindView(R.id.change_units_container)
+    protected ViewGroup vgChangeUnits;
+    @BindView(R.id.change_units_button)
+    protected Button btnChangeUnits;
+    @BindView(R.id.food_serving_sizes)
+    protected RecyclerView lvFoodServingSizes;
+    @BindView(R.id.food_types)
+    protected RecyclerView lvFoodTypes;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        if (getFood() == null) {
+            Timber.e("Could not open activity: getFood returned null");
+            finish();
+            return;
+        }
+
+        setContentView(R.layout.activity_food_info);
+        ButterKnife.bind(this);
+
+        displayFoodInfo();
+
+        // Don't show the change units button when displaying info for exercise
+        if (Common.EXERCISE.equalsIgnoreCase(getFood().getIdName())) {
+            vgChangeUnits.setVisibility(View.GONE);
+        }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.food_info_menu, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.food_info_videos:
+                openVideosInBrowser();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+    private void displayFoodInfo() {
+        final Food food = getFood();
+
+        if (food != null && !TextUtils.isEmpty(food.getName())) {
+            final String foodName = food.getName();
+
+            initImage(foodName);
+            initServingTypes(food);
+            initFoodTypes(foodName);
+        }
+    }
+
+    private void initImage(String foodName) {
+        Common.loadImage(this, ivFood, FoodInfo.getFoodImage(foodName));
+    }
+
+    private void initServingTypes(final Food food) {
+        final List<String> servingSizes = FoodInfo.getServingSizes(food.getIdName(),
+                Prefs.getInstance(this).getUnitTypePref());
+        final FoodServingsAdapter adapter = new FoodServingsAdapter(servingSizes);
+
+        initChangeUnitsButton();
+        initList(lvFoodServingSizes, adapter);
+    }
+
+    private void initChangeUnitsButton() {
+        btnChangeUnits.setText(Prefs.getInstance(this).getUnitTypePref() == Units.IMPERIAL ?
+                R.string.imperial : R.string.metric);
+    }
+
+    private void initFoodTypes(String foodName) {
+        final List<String> foods = FoodInfo.getTypesOfFood(foodName);
+        final List<String> videos = FoodInfo.getFoodVideosLink(foodName);
+        final RecyclerView.Adapter adapter = new FoodTypeAdapter(foods, videos);
+
+        initList(lvFoodTypes, adapter);
+    }
+
+    private void initList(final RecyclerView list, final RecyclerView.Adapter adapter) {
+        list.setAdapter(adapter);
+        list.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
+    }
+
+    private void openVideosInBrowser() {
+        final Food food = getFood();
+
+        if (food != null && !TextUtils.isEmpty(food.getName())) {
+            Common.openUrlInExternalBrowser(this, FoodInfo.getFoodTypeVideosLink(food.getName()));
+        }
+    }
+
+    @OnClick(R.id.change_units_button)
+    public void onChangeUnitsClicked() {
+        Prefs.getInstance(this).toggleUnitType();
+
+        initServingTypes(getFood());
+    }
+}
